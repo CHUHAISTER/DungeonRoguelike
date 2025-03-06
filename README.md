@@ -1,2 +1,2 @@
 # DungeonRoguelike
- my bachelor's thesis project at LPNU
+ my bachelor's thesis at LPNU
