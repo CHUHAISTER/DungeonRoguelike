@@ -45,6 +45,7 @@ void ADungeonGenerator::BeginPlay()
     createCorridor(grid, Rooms[0], Rooms[Rooms.Num() - 1], BonusWall);
     dlaBlur(grid, PowerBlur);
     
+    DeleteUnseenWall(grid);
     DrawDungeon(grid);
     
     TransformRoomsToWorldCoordinates();
@@ -256,11 +257,51 @@ void ADungeonGenerator::createCorridor(TArray<TArray<TCHAR>>& grid, const Rect& 
     }
 }
 
+void ADungeonGenerator::DeleteUnseenWall(TArray<TArray<TCHAR>>& grid) 
+{
+    static const TPair<int32, int32> Neighbors[8] = {
+        { -1, -1 }, { -1,  0 }, { -1, +1 },
+        {  0, -1 },           {  0, +1 },
+        { +1, -1 }, { +1,  0 }, { +1, +1 }
+    };
 
+    for (int32 Y = 0; Y < grid.Num(); Y++)
+    {
+        const TArray<TCHAR>& Row = grid[Y];
+
+        for (int32 X = 0; X < Row.Num(); X++)
+        {
+            TCHAR TileChar = Row[X];
+            if (TileChar == '#') 
+            {
+                if(Y == 0 || X == 0 || Y == grid.Num()-1 || X == Row.Num() - 1)
+                {
+                    grid[Y][X] = ' ';
+                    continue;
+                }
+                bool unseenWall = true;
+                for (auto& Offset : Neighbors)
+                {
+                    int32 nY = Y + Offset.Key;
+                    int32 nX = X + Offset.Value;
+                    if (grid[nY][nX] == '-')
+                    {
+                        unseenWall = false;
+                        break;
+                    }
+                }
+                if (unseenWall)
+                {
+                    grid[Y][X] = ' ';
+
+                }
+            }
+        }
+    }
+}
 
 void ADungeonGenerator::DrawDungeon(TArray<TArray<TCHAR>>& grid)
 {
-    GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, FString::Printf(TEXT("Кількість кімнат: %d"), Rooms.Num()));
 
     if (!GetWorld() || grid.Num() == 0) return;
     
@@ -280,6 +321,9 @@ void ADungeonGenerator::DrawDungeon(TArray<TArray<TCHAR>>& grid)
             if (TileChar == '#')
             {
                 WallISM->AddInstance(InstanceTransform);
+                FTransform InstanceTransformSecond(FRotator::ZeroRotator, FVector(X * TileSize, Y * TileSize, 100), FVector(1.f));
+                WallISM->AddInstance(InstanceTransformSecond);
+
             }
             else if (TileChar == '-')
             {

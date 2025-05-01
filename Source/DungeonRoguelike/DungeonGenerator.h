@@ -50,7 +50,8 @@ private:
 	void createCorridor(TArray<TArray<TCHAR>>& grid, const Rect& a, const Rect& b, int32 bonusWall);
 
 	void TransformRoomsToWorldCoordinates();
-
+	
+	void DeleteUnseenWall(TArray<TArray<TCHAR>>& grid);
 
 
 public:	
