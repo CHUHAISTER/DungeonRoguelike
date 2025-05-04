@@ -11,7 +11,12 @@
 			"AdditionalDependencies": [
 				"Engine"
 			]
-		}
+		},
+    		{
+            		"Name": "GeneratorDungeon",
+            		"Type": "Runtime",
+            		"LoadingPhase": "Default"
+        	}
 	],
 	"Plugins": [
 		{

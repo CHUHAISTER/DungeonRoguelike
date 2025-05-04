@@ -7,6 +7,7 @@
 #include "Algo/Reverse.h"
 
 
+IMPLEMENT_MODULE(FDefaultModuleImpl, GeneratorDungeon);
 
 // Sets default values
 ADungeonGenerator::ADungeonGenerator()
@@ -323,6 +324,9 @@ void ADungeonGenerator::DrawDungeon(TArray<TArray<TCHAR>>& grid)
                 WallISM->AddInstance(InstanceTransform);
                 FTransform InstanceTransformSecond(FRotator::ZeroRotator, FVector(X * TileSize, Y * TileSize, 100), FVector(1.f));
                 WallISM->AddInstance(InstanceTransformSecond);
+                FTransform InstanceTransformThird(FRotator::ZeroRotator, FVector(X * TileSize, Y * TileSize, 200), FVector(1.f));
+                WallISM->AddInstance(InstanceTransformThird);
+
 
             }
             else if (TileChar == '-')

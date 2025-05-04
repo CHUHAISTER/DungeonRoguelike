@@ -7,7 +7,7 @@
 #include "DungeonGenerator.generated.h"
 
 UCLASS()
-class DUNGEONROGUELIKE_API ADungeonGenerator : public AActor
+class GENERATORDUNGEON_API ADungeonGenerator : public AActor
 {
 	GENERATED_BODY()
 	
@@ -88,6 +88,8 @@ public:
 	// Instanced Static Mesh Component для підлоги
 	UPROPERTY(VisibleAnywhere)
 	class UInstancedStaticMeshComponent* FloorISM;
+
+
 
 	void DrawDungeon(TArray<TArray<TCHAR>>&);
 
