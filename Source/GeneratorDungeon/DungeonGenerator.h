@@ -4,7 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "DungeonRoom.h"
+#include "Engine/StaticMeshActor.h"
+
+
 #include "DungeonGenerator.generated.h"
+
 
 UCLASS()
 class GENERATORDUNGEON_API ADungeonGenerator : public AActor
@@ -22,9 +27,7 @@ protected:
 private:
 
 
-	struct Rect {
-		int x, y, w, h;
-	};
+	
 
 	struct Node {
 		Rect rect;
@@ -33,13 +36,13 @@ private:
 	};
 
 
-	TArray<Rect> Rooms;
+	TArray<TUniquePtr<UDungeonRoom>> Rooms;
 
 	void initializeGrid(TArray<TArray<TCHAR>>& grid);
 
 	bool splitNode(Node* node, int32 minSizeArea);
 
-	void createRooms(Node* node, int32 roomMargin, TArray<Rect>& rooms);
+	void createRooms(Node* node, int32 roomMargin, TArray<TUniquePtr<UDungeonRoom>>& rooms);
 
 	void splitRecursively(Node* node, int32 minSize, int32 maxIterations);
 
@@ -52,6 +55,10 @@ private:
 	void TransformRoomsToWorldCoordinates();
 	
 	void DeleteUnseenWall(TArray<TArray<TCHAR>>& grid);
+
+	void SelectStartEndRoom(TArray<TUniquePtr<UDungeonRoom>>& rooms);
+
+	void SpawnElement(TArray<TUniquePtr<UDungeonRoom>>& rooms);
 
 
 public:	
@@ -89,6 +96,8 @@ public:
 	UPROPERTY(VisibleAnywhere)
 	class UInstancedStaticMeshComponent* FloorISM;
 
+	UPROPERTY(EditAnywhere)
+	UStaticMesh* DebugMesh;
 
 
 	void DrawDungeon(TArray<TArray<TCHAR>>&);

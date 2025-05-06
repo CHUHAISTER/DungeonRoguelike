@@ -1,10 +1,10 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "DungeonGenerator.h"
 #include "Components/InstancedStaticMeshComponent.h"
 #include <Kismet/GameplayStatics.h>
 #include "Algo/Reverse.h"
+
 
 
 IMPLEMENT_MODULE(FDefaultModuleImpl, GeneratorDungeon);
@@ -41,39 +41,27 @@ void ADungeonGenerator::BeginPlay()
 
     drawRoom(grid);
     for (size_t i = 1; i < Rooms.Num(); i++) {
-        createCorridor(grid, Rooms[i - 1], Rooms[i], BonusWall);
+        createCorridor(grid, Rooms[i - 1]->ToRect(), Rooms[i]->ToRect(), BonusWall);
     }
-    createCorridor(grid, Rooms[0], Rooms[Rooms.Num() - 1], BonusWall);
+    createCorridor(grid, Rooms[0]->ToRect(), Rooms[Rooms.Num() - 1]->ToRect(), BonusWall);
     dlaBlur(grid, PowerBlur);
     
     DeleteUnseenWall(grid);
     DrawDungeon(grid);
     
     TransformRoomsToWorldCoordinates();
+    SelectStartEndRoom(Rooms);
+
+    SpawnElement(Rooms);
     
-
-    const Rect& startRoom = Rooms[Rooms.Num() / 2];
-    // Calculate center of room
-    float CenterX = (startRoom.x + startRoom.w / 2.0f) * TileSize;
-    float CenterY = (startRoom.y + startRoom.h / 2.0f) * TileSize;
-    FVector NewPlayerLocation = FVector(CenterX, CenterY, 200.f);
-
-  
-
-    // Get Player Pawn and calculate coordinates 
-    APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
-    if (PC && PC->GetPawn())
-    {
-        PC->GetPawn()->SetActorLocation(NewPlayerLocation);
-    }
 }
 
 void ADungeonGenerator::TransformRoomsToWorldCoordinates()
 {
-    for (Rect& room : Rooms)
+    for (TUniquePtr<UDungeonRoom>& room : Rooms)
     {
-        room.x += BonusWall;
-        room.y += BonusWall;
+        room->X += BonusWall;
+        room->Y += BonusWall;
          
     }
 }
@@ -124,7 +112,7 @@ bool ADungeonGenerator::splitNode(Node* node, int32 minSizeArea)
     return true;
 }
 
-void ADungeonGenerator::createRooms(Node* node, int32 roomMargin, TArray<Rect>& rooms)
+void ADungeonGenerator::createRooms(Node* node, int32 roomMargin, TArray<TUniquePtr<UDungeonRoom>>& rooms)
 {
     if (!node)
         return;
@@ -139,7 +127,7 @@ void ADungeonGenerator::createRooms(Node* node, int32 roomMargin, TArray<Rect>& 
         const int32 minSizeRoom = 5;
 
         if (roomW < minSizeRoom || roomH < minSizeRoom) {
-            rooms.Add({ node->rect.x, node->rect.y, minSizeRoom, minSizeRoom });
+            rooms.Add(MakeUnique<UDungeonRoom>(node->rect.x, node->rect.y, minSizeRoom, minSizeRoom));
         }
         else {
             // Rand size room
@@ -147,7 +135,7 @@ void ADungeonGenerator::createRooms(Node* node, int32 roomMargin, TArray<Rect>& 
             int32 h = rand() % (roomH - minSizeRoom + 1) + minSizeRoom;
             int32 x = roomX + rand() % (roomW - w + 1);
             int32 y = roomY + rand() % (roomH - h + 1);
-            rooms.Add({ x, y, w, h });
+            rooms.Add(MakeUnique<UDungeonRoom>(x, y, w, h));
         }
     }
     else {
@@ -212,9 +200,9 @@ void ADungeonGenerator::dlaBlur(TArray<TArray<TCHAR>>& grid, int32 iterations)
 
 void ADungeonGenerator::drawRoom(TArray<TArray<TCHAR>>& grid) const
 {
-    for (const Rect& room : Rooms) {
-        for (int32 y = room.y; y < room.y + room.h; y++) {
-            for (int32 x = room.x; x < room.x + room.w; x++) {
+    for (const TUniquePtr<UDungeonRoom>& room : Rooms) {
+        for (int32 y = room->Y; y < room->Y + room->Height; y++) {
+            for (int32 x = room->X; x < room->X + room->Width; x++) {
                 if (x >= 0 && x < DungeonWidth && y >= 0 && y < DungeonHeight)
                     grid[y + BonusWall][x + BonusWall] = '-';
             }
@@ -298,6 +286,62 @@ void ADungeonGenerator::DeleteUnseenWall(TArray<TArray<TCHAR>>& grid)
                 }
             }
         }
+    }
+}
+
+void ADungeonGenerator::SelectStartEndRoom(TArray<TUniquePtr<UDungeonRoom>>& rooms)
+{
+
+    TUniquePtr<UDungeonRoom> SmallestRoom = nullptr;
+    TUniquePtr<UDungeonRoom> SecondSmallestRoom = nullptr;
+
+    rooms.Sort([](const TUniquePtr<UDungeonRoom>& A, const TUniquePtr<UDungeonRoom>& B)
+        {
+            return A->Area < B->Area;
+        });
+
+    if (rooms.Num() >= 2)
+    {
+        rooms[0]->RoomType = ERoomType::Start;
+        rooms[1]->RoomType = ERoomType::Next;
+    }
+}
+
+void ADungeonGenerator::SpawnElement(TArray<TUniquePtr<UDungeonRoom>>& rooms)
+{
+    const TUniquePtr<UDungeonRoom>& startRoom = Rooms[0];
+    // Calculate center of start room
+    float CenterX = (startRoom->X + startRoom->Width / 2.0f) * TileSize;
+    float CenterY = (startRoom->Y + startRoom->Height / 2.0f) * TileSize;
+    FVector NewPlayerLocation = FVector(CenterX, CenterY, 200.f);
+
+
+    // Get Player Pawn and calculate coordinates 
+    APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
+    if (PC && PC->GetPawn())
+    {
+        PC->GetPawn()->SetActorLocation(NewPlayerLocation);
+    }
+
+    const TUniquePtr<UDungeonRoom>& nextRoom = Rooms[1];
+    CenterX = (nextRoom->X + nextRoom->Width / 2.0f) * TileSize;
+    CenterY = (nextRoom->Y + nextRoom->Height / 2.0f) * TileSize;
+    FVector Location = FVector(CenterX, CenterY, 400.f);
+
+    UWorld* World = GetWorld();
+    if (!World || !DebugMesh) return;
+
+    FActorSpawnParameters SpawnParams;
+    SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+    AStaticMeshActor* DebugActor = World->SpawnActor<AStaticMeshActor>(Location, FRotator::ZeroRotator, SpawnParams);
+    if (DebugActor)
+    {
+        DebugActor->GetStaticMeshComponent()->SetStaticMesh(DebugMesh);
+        DebugActor->GetStaticMeshComponent()->SetWorldScale3D(FVector(3.f, 3.f, 15.f));
+        DebugActor->SetActorEnableCollision(false);
+        DebugActor->SetActorHiddenInGame(false);
+        UE_LOG(LogTemp, Warning, TEXT("Mesh spawned successfully at %s"), *Location.ToString());
     }
 }
 
