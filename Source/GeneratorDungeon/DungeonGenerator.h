@@ -6,7 +6,6 @@
 #include "GameFramework/Actor.h"
 #include "DungeonRoom.h"
 #include "Engine/StaticMeshActor.h"
-#include <GameCore/EnemyCharacter.h>
 
 
 #include "DungeonGenerator.generated.h"
@@ -100,14 +99,11 @@ public:
 	UPROPERTY(EditAnywhere)
 	UStaticMesh* DebugMesh;
 
-	UPROPERTY(EditAnywhere)
-	TSubclassOf<AEnemyCharacter> EnemyClass;
-
 
 	void DrawDungeon(TArray<TArray<TCHAR>>&);
 
 	
 private:
-	TUniquePtr<Node> root;
+	TUniquePtr<Node> root = MakeUnique<Node>(Node{ {0, 0, DungeonWidth, DungeonHeight} });
 
 };

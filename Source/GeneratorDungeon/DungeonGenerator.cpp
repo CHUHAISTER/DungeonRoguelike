@@ -23,16 +23,13 @@ ADungeonGenerator::ADungeonGenerator()
     FloorISM = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("FloorISM"));
     FloorISM->SetupAttachment(RootComponent);
 
-    WallISM->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-    FloorISM->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-    FloorISM->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
 }
 
 // Called when the game starts or when spawned
 void ADungeonGenerator::BeginPlay()
 {
 	Super::BeginPlay();
-    root = MakeUnique<Node>(Node{ {0, 0, DungeonWidth, DungeonHeight} });
+
     splitRecursively(root.Get(), MinSizeArea, MaxIterations);
     createRooms(root.Get(), RoomMargin, Rooms);
 
@@ -55,14 +52,8 @@ void ADungeonGenerator::BeginPlay()
     TransformRoomsToWorldCoordinates();
     SelectStartEndRoom(Rooms);
 
-    FloorISM->MarkRenderStateDirty();
-    FloorISM->RecreatePhysicsState();
-
     SpawnElement(Rooms);
-    UE_LOG(LogTemp, Warning, TEXT("Floor: %d, Wall: %d"),
-        FloorISM->GetInstanceCount(),
-        WallISM->GetInstanceCount());
-
+    
 }
 
 void ADungeonGenerator::TransformRoomsToWorldCoordinates()
@@ -350,21 +341,8 @@ void ADungeonGenerator::SpawnElement(TArray<TUniquePtr<UDungeonRoom>>& rooms)
         DebugActor->GetStaticMeshComponent()->SetWorldScale3D(FVector(3.f, 3.f, 15.f));
         DebugActor->SetActorEnableCollision(false);
         DebugActor->SetActorHiddenInGame(false);
+        UE_LOG(LogTemp, Warning, TEXT("Mesh spawned successfully at %s"), *Location.ToString());
     }
-    
-    for (TUniquePtr<UDungeonRoom>& room : Rooms) 
-    {
-        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Код працює!"));
-
-        if (room->RoomType == ERoomType::Enemy)
-        {
-            CenterX = (room->X + room->Width / 2.0f) * TileSize;
-            CenterY = (room->Y + room->Height / 2.0f) * TileSize;
-            FVector SpawnLocation = FVector(CenterX, CenterY, 400.f);
-            World->SpawnActor<AEnemyCharacter>(EnemyClass, SpawnLocation, FRotator::ZeroRotator);
-        }
-    }
-    
 }
 
 void ADungeonGenerator::DrawDungeon(TArray<TArray<TCHAR>>& grid)
@@ -381,13 +359,12 @@ void ADungeonGenerator::DrawDungeon(TArray<TArray<TCHAR>>& grid)
         {
             TCHAR TileChar = Row[X];
 
-            FTransform InstanceTransform(FRotator::ZeroRotator, FVector(X * TileSize, Y * TileSize, 0), FVector(1.f));
-
+            
+            FTransform InstanceTransform(FRotator::ZeroRotator, FVector(X*TileSize, Y*TileSize, 0), FVector(1.f));
 
             
             if (TileChar == '#')
             {
-
                 WallISM->AddInstance(InstanceTransform);
                 FTransform InstanceTransformSecond(FRotator::ZeroRotator, FVector(X * TileSize, Y * TileSize, 100), FVector(1.f));
                 WallISM->AddInstance(InstanceTransformSecond);
@@ -398,9 +375,7 @@ void ADungeonGenerator::DrawDungeon(TArray<TArray<TCHAR>>& grid)
             }
             else if (TileChar == '-')
             {
-
                 FloorISM->AddInstance(InstanceTransform);
-
             }
             
         }

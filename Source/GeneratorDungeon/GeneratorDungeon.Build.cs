@@ -10,8 +10,7 @@ public class GeneratorDungeon : ModuleRules
         {
             "Core",
             "CoreUObject",
-            "Engine",
-            "GameCore",
+            "Engine"
         });
 
         PrivateDependencyModuleNames.AddRange(new string[] { });
