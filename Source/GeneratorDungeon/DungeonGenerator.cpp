@@ -4,7 +4,9 @@
 #include "Components/InstancedStaticMeshComponent.h"
 #include <Kismet/GameplayStatics.h>
 #include "Algo/Reverse.h"
-
+#include "TimerManager.h"
+#include <NavMesh/NavMeshBoundsVolume.h>
+#include "NavigationSystem.h"
 
 
 IMPLEMENT_MODULE(FDefaultModuleImpl, GeneratorDungeon);
@@ -23,21 +25,26 @@ ADungeonGenerator::ADungeonGenerator()
     FloorISM = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("FloorISM"));
     FloorISM->SetupAttachment(RootComponent);
 
+
+    
+
+
+
 }
 
 // Called when the game starts or when spawned
 void ADungeonGenerator::BeginPlay()
 {
 	Super::BeginPlay();
-
+    root = MakeUnique<Node>(Node{ {0, 0, DungeonWidth, DungeonHeight} });
     splitRecursively(root.Get(), MinSizeArea, MaxIterations);
-    createRooms(root.Get(), RoomMargin, Rooms);
+    createRooms(root.Get());
 
     TArray<TArray<TCHAR>> grid;
     initializeGrid(grid);
     int32 OffSet = grid.Num() * TileSize;
     //SetActorLocation(FVector(OffSet, 0, 0));
-
+    GenerateNavMesh();
 
     drawRoom(grid);
     for (size_t i = 1; i < Rooms.Num(); i++) {
@@ -50,11 +57,53 @@ void ADungeonGenerator::BeginPlay()
     DrawDungeon(grid);
     
     TransformRoomsToWorldCoordinates();
-    SelectStartEndRoom(Rooms);
+    SelectStartEndRoom();
 
-    SpawnElement(Rooms);
+
+
+    SpawnElement();
+    FTimerHandle TimerHandle;
+    GetWorldTimerManager().SetTimer(
+        TimerHandle,
+        this,
+        &ADungeonGenerator::SpawnEnemy,
+        0.7f, 
+        false
+    );
     
+    
+
+
 }
+
+void ADungeonGenerator::GenerateNavMesh()
+{
+    FVector DungeonCenter = FVector((DungeonWidth * TileSize) / 2.0f, (DungeonHeight * TileSize) / 2.0f, 0.0f);
+    FVector DungeonExtent = FVector(FMath::Abs(DungeonWidth * TileSize) / 2.0f, FMath::Abs(DungeonHeight * TileSize) / 2.0f, 5000.0f);
+
+    ANavMeshBoundsVolume* NavMeshBounds = GetWorld()->SpawnActor<ANavMeshBoundsVolume>(DungeonCenter, FRotator::ZeroRotator);
+    if (NavMeshBounds)
+    {
+        NavMeshBounds->SetActorScale3D(DungeonExtent / TileSize);
+
+        UNavigationSystemV1* NavSystem = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
+        if (NavSystem)
+        {
+            NavSystem->OnNavigationBoundsUpdated(NavMeshBounds);
+            NavSystem->Build(); 
+            UE_LOG(LogTemp, Warning, TEXT("NavMesh successfully generated!"));
+        }
+        else
+        {
+            UE_LOG(LogTemp, Error, TEXT("Failed to get Navigation System!"));
+        }
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("Failed to spawn NavMeshBoundsVolume!"));
+    }
+}
+
 
 void ADungeonGenerator::TransformRoomsToWorldCoordinates()
 {
@@ -112,22 +161,22 @@ bool ADungeonGenerator::splitNode(Node* node, int32 minSizeArea)
     return true;
 }
 
-void ADungeonGenerator::createRooms(Node* node, int32 roomMargin, TArray<TUniquePtr<UDungeonRoom>>& rooms)
+void ADungeonGenerator::createRooms(Node* node)
 {
     if (!node)
         return;
 
     // Create room if node is leaf
     if (!node->left && !node->right) {
-        int32 roomX = node->rect.x + roomMargin;
-        int32 roomY = node->rect.y + roomMargin;
-        int32 roomW = node->rect.w - 2 * roomMargin;
-        int32 roomH = node->rect.h - 2 * roomMargin;
+        int32 roomX = node->rect.x + RoomMargin;
+        int32 roomY = node->rect.y + RoomMargin;
+        int32 roomW = node->rect.w - 2 * RoomMargin;
+        int32 roomH = node->rect.h - 2 * RoomMargin;
 
         const int32 minSizeRoom = 5;
 
         if (roomW < minSizeRoom || roomH < minSizeRoom) {
-            rooms.Add(MakeUnique<UDungeonRoom>(node->rect.x, node->rect.y, minSizeRoom, minSizeRoom));
+            Rooms.Add(MakeUnique<UDungeonRoom>(node->rect.x, node->rect.y, minSizeRoom, minSizeRoom));
         }
         else {
             // Rand size room
@@ -135,12 +184,12 @@ void ADungeonGenerator::createRooms(Node* node, int32 roomMargin, TArray<TUnique
             int32 h = rand() % (roomH - minSizeRoom + 1) + minSizeRoom;
             int32 x = roomX + rand() % (roomW - w + 1);
             int32 y = roomY + rand() % (roomH - h + 1);
-            rooms.Add(MakeUnique<UDungeonRoom>(x, y, w, h));
+            Rooms.Add(MakeUnique<UDungeonRoom>(x, y, w, h));
         }
     }
     else {
-        createRooms(node->left.Get(), roomMargin, rooms);
-        createRooms(node->right.Get(), roomMargin, rooms);
+        createRooms(node->left.Get());
+        createRooms(node->right.Get());
     }
 }
 
@@ -289,25 +338,25 @@ void ADungeonGenerator::DeleteUnseenWall(TArray<TArray<TCHAR>>& grid)
     }
 }
 
-void ADungeonGenerator::SelectStartEndRoom(TArray<TUniquePtr<UDungeonRoom>>& rooms)
+void ADungeonGenerator::SelectStartEndRoom()
 {
 
     TUniquePtr<UDungeonRoom> SmallestRoom = nullptr;
     TUniquePtr<UDungeonRoom> SecondSmallestRoom = nullptr;
 
-    rooms.Sort([](const TUniquePtr<UDungeonRoom>& A, const TUniquePtr<UDungeonRoom>& B)
+    Rooms.Sort([](const TUniquePtr<UDungeonRoom>& A, const TUniquePtr<UDungeonRoom>& B)
         {
             return A->Area < B->Area;
         });
 
-    if (rooms.Num() >= 2)
+    if (Rooms.Num() >= 2)
     {
-        rooms[0]->RoomType = ERoomType::Start;
-        rooms[1]->RoomType = ERoomType::Next;
+        Rooms[0]->RoomType = ERoomType::Start;
+        Rooms[1]->RoomType = ERoomType::Next;
     }
 }
 
-void ADungeonGenerator::SpawnElement(TArray<TUniquePtr<UDungeonRoom>>& rooms)
+void ADungeonGenerator::SpawnElement()
 {
     const TUniquePtr<UDungeonRoom>& startRoom = Rooms[0];
     // Calculate center of start room
@@ -326,9 +375,9 @@ void ADungeonGenerator::SpawnElement(TArray<TUniquePtr<UDungeonRoom>>& rooms)
     const TUniquePtr<UDungeonRoom>& nextRoom = Rooms[1];
     CenterX = (nextRoom->X + nextRoom->Width / 2.0f) * TileSize;
     CenterY = (nextRoom->Y + nextRoom->Height / 2.0f) * TileSize;
-    FVector Location = FVector(CenterX, CenterY, 400.f);
-
+    FVector Location = FVector(CenterX, CenterY, 200.f);
     UWorld* World = GetWorld();
+
     if (!World || !DebugMesh) return;
 
     FActorSpawnParameters SpawnParams;
@@ -341,15 +390,60 @@ void ADungeonGenerator::SpawnElement(TArray<TUniquePtr<UDungeonRoom>>& rooms)
         DebugActor->GetStaticMeshComponent()->SetWorldScale3D(FVector(3.f, 3.f, 15.f));
         DebugActor->SetActorEnableCollision(false);
         DebugActor->SetActorHiddenInGame(false);
-        UE_LOG(LogTemp, Warning, TEXT("Mesh spawned successfully at %s"), *Location.ToString());
+    }
+
+    
+    
+}
+
+void ADungeonGenerator::SpawnEnemy()
+{
+    UWorld* World = GetWorld();
+
+    for (TUniquePtr<UDungeonRoom>& room : Rooms)
+    {
+        
+        
+        if (room->RoomType == ERoomType::Enemy)
+        {
+            float CenterX = (room->X + room->Width / 2.0f) * TileSize;
+            float CenterY = (room->Y + room->Height / 2.0f) * TileSize;
+            FVector SpawnLocation = FVector(CenterX, CenterY, 50);
+            AEnemyCharacter* Enemy = World->SpawnActor<AEnemyCharacter>(
+                EnemyClass,
+                SpawnLocation,
+                FRotator::ZeroRotator
+            );
+
+            if (Enemy)
+            {
+                FVector PatrolMin = FVector(
+                    room->X * TileSize,
+                    room->Y * TileSize,
+                    SpawnLocation.Z
+                );
+                FVector PatrolMax = FVector(
+                    (room->X + room->Width) * TileSize,
+                    (room->Y + room->Height) * TileSize,
+                    SpawnLocation.Z
+                );
+
+                Enemy->SetPatrolArea(PatrolMin, PatrolMax);
+
+                Enemy->ChoosePatrolTarget();
+            }
+        }
+        
     }
 }
+
+
 
 void ADungeonGenerator::DrawDungeon(TArray<TArray<TCHAR>>& grid)
 {
 
     if (!GetWorld() || grid.Num() == 0) return;
-    
+    auto World = GetWorld();
 
     for (int32 Y = 0; Y < grid.Num(); Y++)
     {
@@ -359,23 +453,35 @@ void ADungeonGenerator::DrawDungeon(TArray<TArray<TCHAR>>& grid)
         {
             TCHAR TileChar = Row[X];
 
-            
-            FTransform InstanceTransform(FRotator::ZeroRotator, FVector(X*TileSize, Y*TileSize, 0), FVector(1.f));
+            FTransform InstanceTransform(FRotator::ZeroRotator, FVector(X * TileSize, Y * TileSize, 10), FVector(1.f));
+
 
             
             if (TileChar == '#')
             {
+
                 WallISM->AddInstance(InstanceTransform);
-                FTransform InstanceTransformSecond(FRotator::ZeroRotator, FVector(X * TileSize, Y * TileSize, 100), FVector(1.f));
+                FTransform InstanceTransformSecond(FRotator::ZeroRotator, FVector(X * TileSize, Y * TileSize, 110), FVector(1.f));
                 WallISM->AddInstance(InstanceTransformSecond);
-                FTransform InstanceTransformThird(FRotator::ZeroRotator, FVector(X * TileSize, Y * TileSize, 200), FVector(1.f));
+                FTransform InstanceTransformThird(FRotator::ZeroRotator, FVector(X * TileSize, Y * TileSize, 210), FVector(1.f));
                 WallISM->AddInstance(InstanceTransformThird);
 
 
             }
             else if (TileChar == '-')
             {
+
                 FloorISM->AddInstance(InstanceTransform);
+                /*if (FloorActorClass)
+                {
+                    FActorSpawnParameters SpawnParams;
+                    SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+                    FVector Location = FVector(X * TileSize, Y * TileSize, 0.f);
+                    FTransform FloorTransform(FRotator::ZeroRotator, Location);
+
+                    AStaticMeshActor* FloorTile = GetWorld()->SpawnActor<AStaticMeshActor>(FloorActorClass, FloorTransform, SpawnParams);
+                }*/
             }
             
         }

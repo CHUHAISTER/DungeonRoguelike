@@ -13,6 +13,7 @@ public class GameCore : ModuleRules
             "Engine",
             "InputCore",
             "NavigationSystem",
+            "AIModule",
         });
 
         PrivateDependencyModuleNames.AddRange(new string[] { });

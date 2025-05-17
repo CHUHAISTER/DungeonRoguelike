@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "DungeonRoom.h"
 #include "Engine/StaticMeshActor.h"
+#include <GameCore/EnemyCharacter.h>
 
 
 #include "DungeonGenerator.generated.h"
@@ -23,6 +24,7 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
 
 private:
 
@@ -42,7 +44,7 @@ private:
 
 	bool splitNode(Node* node, int32 minSizeArea);
 
-	void createRooms(Node* node, int32 roomMargin, TArray<TUniquePtr<UDungeonRoom>>& rooms);
+	void createRooms(Node* node);
 
 	void splitRecursively(Node* node, int32 minSize, int32 maxIterations);
 
@@ -56,9 +58,13 @@ private:
 	
 	void DeleteUnseenWall(TArray<TArray<TCHAR>>& grid);
 
-	void SelectStartEndRoom(TArray<TUniquePtr<UDungeonRoom>>& rooms);
+	void SelectStartEndRoom();
 
-	void SpawnElement(TArray<TUniquePtr<UDungeonRoom>>& rooms);
+	void SpawnElement();
+
+	void SpawnEnemy();
+
+	void GenerateNavMesh();
 
 
 public:	
@@ -99,11 +105,16 @@ public:
 	UPROPERTY(EditAnywhere)
 	UStaticMesh* DebugMesh;
 
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<AEnemyCharacter> EnemyClass;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<AStaticMeshActor> FloorActorClass;
 
 	void DrawDungeon(TArray<TArray<TCHAR>>&);
 
 	
 private:
-	TUniquePtr<Node> root = MakeUnique<Node>(Node{ {0, 0, DungeonWidth, DungeonHeight} });
+	TUniquePtr<Node> root;
 
 };
