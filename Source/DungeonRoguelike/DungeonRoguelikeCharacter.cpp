@@ -10,6 +10,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
+#include "DRPlayerController.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -52,6 +53,45 @@ ADungeonRoguelikeCharacter::ADungeonRoguelikeCharacter()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
+
+	
+	
+}
+
+
+
+void ADungeonRoguelikeCharacter::TakeDamage(float DamageAmount)
+{
+	CurrentHealth = FMath::Clamp(CurrentHealth - DamageAmount, 0.f, MaxHealth);
+	if (HealthBarWidget)
+	{
+		HealthBarWidget->SetHealthPercent(CurrentHealth / MaxHealth);
+	}
+	if (CurrentHealth <= 0.f)
+	{
+		// TODO: Handle death
+		UE_LOG(LogTemp, Warning, TEXT("Character is dead!"));
+	}
+}
+
+void ADungeonRoguelikeCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+
+	ADRPlayerController* PC = Cast<ADRPlayerController>(GetController());
+	if (PC)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("PC is valid"));
+		if (PC->GetUHealthBar())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Widget is valid"));
+			PC->GetUHealthBar()->SetHealthPercent(0.7);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Widget is NULL"));
+		}
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -91,6 +131,8 @@ void ADungeonRoguelikeCharacter::SetupPlayerInputComponent(UInputComponent* Play
 		UE_LOG(LogTemplateCharacter, Error, TEXT("'%s' Failed to find an Enhanced Input component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
 	}
 }
+
+
 
 void ADungeonRoguelikeCharacter::Move(const FInputActionValue& Value)
 {

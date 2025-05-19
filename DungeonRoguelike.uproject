@@ -9,24 +9,25 @@
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
 			"AdditionalDependencies": [
-				"Engine"
+				"Engine",
+				"UMG"
 			]
 		},
-    		{
-            		"Name": "GeneratorDungeon",
-            		"Type": "Runtime",
-            		"LoadingPhase": "Default"
-        	},
-    		{
-            		"Name": "GameCore",
-            		"Type": "Runtime",
-            		"LoadingPhase": "Default"
-        	},
-    		{
-            		"Name": "MathCombat",
-            		"Type": "Runtime",
-            		"LoadingPhase": "Default"
-        	}
+		{
+			"Name": "GeneratorDungeon",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "GameCore",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "MathCombat",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
 	],
 	"Plugins": [
 		{

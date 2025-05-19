@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
+#include "HealthBar.h"
 #include "DungeonRoguelikeCharacter.generated.h"
 
 class USpringArmComponent;
@@ -47,8 +48,22 @@ class ADungeonRoguelikeCharacter : public ACharacter
 public:
 	ADungeonRoguelikeCharacter();
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
+	float MaxHealth = 100.f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stats")
+	float CurrentHealth = 100.f;
+
+
+
+	UHealthBar* HealthBarWidget;
+
+	UFUNCTION(BlueprintCallable, Category = "Stats")
+	void TakeDamage(float DamageAmount);
 
 protected:
+	virtual void BeginPlay() override;
+
 
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);

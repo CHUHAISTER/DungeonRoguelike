@@ -4,6 +4,8 @@
 #include "DungeonRoguelikeCharacter.h"
 #include "UObject/ConstructorHelpers.h"
 #include <Kismet/GameplayStatics.h>
+#include "DRPlayerController.h"
+
 
 ADungeonRoguelikeGameMode::ADungeonRoguelikeGameMode()
 {
@@ -13,5 +15,4 @@ ADungeonRoguelikeGameMode::ADungeonRoguelikeGameMode()
 	{
 		DefaultPawnClass = PlayerPawnBPClass.Class;
 	}
-
 }
