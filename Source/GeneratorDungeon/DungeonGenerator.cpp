@@ -28,7 +28,7 @@ ADungeonGenerator::ADungeonGenerator()
 
     
 
-
+    
 
 }
 
@@ -72,7 +72,19 @@ void ADungeonGenerator::BeginPlay()
     );
     
     
+    WallISM->RegisterComponent();
+    WallISM->SetCollisionProfileName(TEXT("BlockAll"));
+    WallISM->SetMobility(EComponentMobility::Static);
+    WallISM->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+    WallISM->SetCollisionObjectType(ECC_WorldStatic);
+    WallISM->SetGenerateOverlapEvents(false);
 
+    FloorISM->RegisterComponent();
+    FloorISM->SetCollisionProfileName(TEXT("BlockAll"));
+    FloorISM->SetMobility(EComponentMobility::Static);
+    FloorISM->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+    FloorISM->SetCollisionObjectType(ECC_WorldStatic);
+    FloorISM->SetGenerateOverlapEvents(false);
 
 }
 

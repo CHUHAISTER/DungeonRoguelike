@@ -10,6 +10,7 @@
 
 
 
+
 // Sets default values
 AEnemyCharacter::AEnemyCharacter()
 {
@@ -19,12 +20,18 @@ AEnemyCharacter::AEnemyCharacter()
 	PawnSensingComponent->SightRadius = 1000.0f;
 	PawnSensingComponent->SetPeripheralVisionAngle(60.0f);
 	PawnSensingComponent->bHearNoises = false;
-	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Ignore);
+	
+	/*GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	GetCapsuleComponent()->SetCollisionProfileName(TEXT("Pawn"));
 	GetCharacterMovement()->GravityScale = 1.0f;
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 	GetCapsuleComponent()->SetSimulatePhysics(false);
 	GetCapsuleComponent()->SetEnableGravity(true);
+	GetCapsuleComponent()->SetNotifyRigidBodyCollision(true);
+	GetCapsuleComponent()->SetGenerateOverlapEvents(true);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);*/
+
+
 
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 	AIControllerClass = AAIController::StaticClass();
@@ -34,6 +41,12 @@ AEnemyCharacter::AEnemyCharacter()
 void AEnemyCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	GetCapsuleComponent()->UpdateOverlaps();
+	UE_LOG(LogTemp, Warning, TEXT("Enemy Capsule: ObjectType=%d, OverlapEvents=%d"),
+		(int32)GetCapsuleComponent()->GetCollisionObjectType(),
+		(int32)GetCapsuleComponent()->GetGenerateOverlapEvents());
+
+	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &AEnemyCharacter::OnOverlap);
 
 
 	if (!Controller)
@@ -101,7 +114,6 @@ void AEnemyCharacter::Tick(float DeltaTime)
 			FNavPathSharedPtr NavPath;
 			EPathFollowingRequestResult::Type MoveResult = AIController->MoveTo(MoveRequest, &NavPath);
 
-			UE_LOG(LogTemp, Warning, TEXT("MoveTo result: %d"), static_cast<int32>(MoveResult));
 			if (NavPath.IsValid())
 			{
 				UE_LOG(LogTemp, Warning, TEXT("Path has %d points"), NavPath->GetPathPoints().Num());
@@ -132,6 +144,24 @@ void AEnemyCharacter::OnSeePawn(APawn* Pawn)
 	GetCharacterMovement()->MaxWalkSpeed = PatrolSpeed * 1.5f;
 }
 
+void AEnemyCharacter::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
+	bool bFromSweep, const FHitResult& SweepResult)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Overlapping with: %s "), *OtherActor->GetName());
+
+	if (!OtherActor || OtherActor == this) return;
+
+	if (OtherActor->IsA(AProjectile::StaticClass()))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Overlapping Projectile: %s (ENEMY)"), *OtherActor->GetName());
+		OtherActor->Destroy();
+		Destroy();
+
+	}
+
+}
+
 void AEnemyCharacter::ChoosePatrolTarget()
 {
 
@@ -145,8 +175,8 @@ void AEnemyCharacter::ChoosePatrolTarget()
 	int32 Attempts = 10;
 	while (Attempts-- > 0)
 	{
-		float X = FMath::FRandRange(PatrolAreaMin.X, PatrolAreaMax.X);
-		float Y = FMath::FRandRange(PatrolAreaMin.Y, PatrolAreaMax.Y);
+		float X = FMath::FRandRange(PatrolAreaMin.X-1, PatrolAreaMax.X-1);
+		float Y = FMath::FRandRange(PatrolAreaMin.Y-1, PatrolAreaMax.Y-1);
 		NewTarget = FVector(X, Y, Z);
 
 		if (FVector::Dist2D(Origin, NewTarget) >= MinDistance)

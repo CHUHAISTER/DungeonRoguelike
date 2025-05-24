@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
 #include "HealthBar.h"
+#include "GameCore/Projectile.h"
 #include "DungeonRoguelikeCharacter.generated.h"
 
 class USpringArmComponent;
@@ -45,6 +46,9 @@ class ADungeonRoguelikeCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* LookAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* ShootAction;
+
 public:
 	ADungeonRoguelikeCharacter();
 	
@@ -60,6 +64,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Stats")
 	void TakeDamage(float DamageAmount);
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
+	TSubclassOf<AProjectile> ProjectileClass;
 
 protected:
 	virtual void BeginPlay() override;
@@ -77,6 +84,8 @@ protected:
 	virtual void NotifyControllerChanged() override;
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	void ShootProjectile();
 
 public:
 	/** Returns CameraBoom subobject **/

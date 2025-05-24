@@ -85,7 +85,7 @@ void ADungeonRoguelikeCharacter::BeginPlay()
 		if (PC->GetUHealthBar())
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Widget is valid"));
-			PC->GetUHealthBar()->SetHealthPercent(0.7);
+			PC->GetUHealthBar()->SetHealthPercent(1.0);
 		}
 		else
 		{
@@ -125,6 +125,9 @@ void ADungeonRoguelikeCharacter::SetupPlayerInputComponent(UInputComponent* Play
 
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ADungeonRoguelikeCharacter::Look);
+
+		EnhancedInputComponent->BindAction(ShootAction, ETriggerEvent::Triggered, this, &ADungeonRoguelikeCharacter::ShootProjectile);
+
 	}
 	else
 	{
@@ -132,7 +135,23 @@ void ADungeonRoguelikeCharacter::SetupPlayerInputComponent(UInputComponent* Play
 	}
 }
 
+void ADungeonRoguelikeCharacter::ShootProjectile()
+{
+	if (!ProjectileClass) return;
 
+	FVector MuzzleLocation = GetActorLocation() + GetActorForwardVector() * 100.f + FVector(0, 0, 50.f);
+	FRotator MuzzleRotation = GetControlRotation();
+
+	FActorSpawnParameters Params;
+	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+	AProjectile* Projectile = GetWorld()->SpawnActor<AProjectile>(ProjectileClass, MuzzleLocation, MuzzleRotation, Params);
+	if (Projectile)
+	{
+		FVector LaunchDir = MuzzleRotation.Vector();
+		Projectile->FireInDirection(LaunchDir);
+	}
+}
 
 void ADungeonRoguelikeCharacter::Move(const FInputActionValue& Value)
 {
