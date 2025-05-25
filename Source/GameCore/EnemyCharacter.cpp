@@ -9,8 +9,6 @@
 
 
 
-
-
 // Sets default values
 AEnemyCharacter::AEnemyCharacter()
 {
@@ -144,11 +142,36 @@ void AEnemyCharacter::OnSeePawn(APawn* Pawn)
 	GetCharacterMovement()->MaxWalkSpeed = PatrolSpeed * 1.5f;
 }
 
+void AEnemyCharacter::KnockbackFromPlayer(const FVector& PlayerLocation, float KnockbackStrength)
+{
+	FVector Direction = GetActorLocation() - PlayerLocation;
+	Direction.Z = 0.0f; 
+	Direction.Normalize();
+
+	FVector KnockbackImpulse = Direction * KnockbackStrength;
+	UE_LOG(LogTemp, Warning, TEXT("KnockbackFromPlayer"));
+
+	ACharacter* EnemyChar = Cast<ACharacter>(this);
+	if (EnemyChar)
+	{
+		FVector LaunchVelocity = KnockbackImpulse;
+		LaunchVelocity.Z = 300.0f; 
+		EnemyChar->LaunchCharacter(LaunchVelocity, true, true);
+	}
+	else
+	{
+		UPrimitiveComponent* RootComp = Cast<UPrimitiveComponent>(GetRootComponent());
+		if (RootComp && RootComp->IsSimulatingPhysics())
+		{
+			RootComp->AddImpulse(KnockbackImpulse, NAME_None, true);
+		}
+	}
+}
+
 void AEnemyCharacter::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
 	bool bFromSweep, const FHitResult& SweepResult)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Overlapping with: %s "), *OtherActor->GetName());
 
 	if (!OtherActor || OtherActor == this) return;
 
@@ -159,6 +182,7 @@ void AEnemyCharacter::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* Oth
 		Destroy();
 
 	}
+
 
 }
 

@@ -10,7 +10,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
-#include "DRPlayerController.h"
+#include "GameCore/EnemyCharacter.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -54,18 +54,58 @@ ADungeonRoguelikeCharacter::ADungeonRoguelikeCharacter()
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 
-	
+	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &ADungeonRoguelikeCharacter::OnOverlap);
+
 	
 }
 
+void ADungeonRoguelikeCharacter::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
+	bool bFromSweep, const FHitResult& SweepResult)
+{
 
+	if (!OtherActor || OtherActor == this) return;
+
+	AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(OtherActor);
+	if (Enemy)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Overlapping with player, casting succeeded!"));
+		Enemy->KnockbackFromPlayer(GetActorLocation(), 400.0f);
+		if (bCanBeDamaged)
+		{
+			this->TakeDamage(5.0f);
+			bCanBeDamaged = false;
+
+			// Запускаємо таймер на 1 секунду (або скільки треба)
+			GetWorldTimerManager().SetTimer(
+				DamageImmunityTimer,
+				this,
+				&ADungeonRoguelikeCharacter::ResetDamageImmunity,
+				1.0f, 
+				false
+			);
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Cast to AEnemyCharacter failed!"));
+	}
+
+
+}
+
+void ADungeonRoguelikeCharacter::ResetDamageImmunity()
+{
+	bCanBeDamaged = true;
+}
 
 void ADungeonRoguelikeCharacter::TakeDamage(float DamageAmount)
 {
 	CurrentHealth = FMath::Clamp(CurrentHealth - DamageAmount, 0.f, MaxHealth);
-	if (HealthBarWidget)
+	
+	if (PC)
 	{
-		HealthBarWidget->SetHealthPercent(CurrentHealth / MaxHealth);
+		PC->GetUHealthBar()->SetHealthPercent(CurrentHealth / MaxHealth);
 	}
 	if (CurrentHealth <= 0.f)
 	{
@@ -78,7 +118,7 @@ void ADungeonRoguelikeCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	ADRPlayerController* PC = Cast<ADRPlayerController>(GetController());
+	PC = Cast<ADRPlayerController>(GetController());
 	if (PC)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("PC is valid"));

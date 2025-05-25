@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
+#include "DRPlayerController.h"
 
 #include "Blueprint/UserWidget.h"
-#include "DRPlayerController.h"
 
 void ADRPlayerController::BeginPlay()
 {

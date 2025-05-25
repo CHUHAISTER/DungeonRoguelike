@@ -42,10 +42,14 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
 	UPawnSensingComponent* PawnSensingComponent;
 	
+	void KnockbackFromPlayer(const FVector& PlayerLocation, float KnockbackStrength);
+
+
 	UFUNCTION()
 	void OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
 		bool bFromSweep, const FHitResult& SweepResult);
+
 
 
 	UPROPERTY(EditAnywhere)
