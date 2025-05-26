@@ -10,7 +10,8 @@ public class MathCombat : ModuleRules
         {
             "Core",
             "CoreUObject",
-            "Engine"
+            "Engine",
+            "UMG",
         });
 
         PrivateDependencyModuleNames.AddRange(new string[] { });

@@ -5,8 +5,12 @@
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
 #include "HealthBar.h"
+#include "MathCombat/MathWidget.h"
+
+
 #include "DRPlayerController.generated.h"
 
+class UMathManager;
 /**
  * 
  */
@@ -22,6 +26,16 @@ protected:
 	TSubclassOf<UHealthBar> UHealthBarClass;
 private:
 	UHealthBar* HealthBarWidget;
+
+	
 public:
 	UHealthBar* GetUHealthBar() {return HealthBarWidget;	}
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
+	TSubclassOf<UMathWidget> MathWidgetClass;
+
+	UPROPERTY()
+	UMathManager* MathManager;
+
+	void StartTaskMenu();
 };

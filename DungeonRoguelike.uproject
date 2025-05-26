@@ -29,7 +29,11 @@
 		{
 			"Name": "MathCombat",
 			"Type": "Runtime",
-			"LoadingPhase": "Default"
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"UMG",
+				"CoreUObject"
+			]
 		}
 	],
 	"Plugins": [

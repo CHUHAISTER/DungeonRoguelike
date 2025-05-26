@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "UObject/NoExportTypes.h"
 #include "Modules/ModuleManager.h"
 
 
@@ -16,4 +17,5 @@ public:
 	~MathCombat();
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
+
 };

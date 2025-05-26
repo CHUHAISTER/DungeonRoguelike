@@ -11,6 +11,7 @@ public class DungeonRoguelike : ModuleRules
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput" });
         PublicDependencyModuleNames.Add("GeneratorDungeon");
         PublicDependencyModuleNames.Add("GameCore");
+        PublicDependencyModuleNames.Add("MathCombat");
 
 
     }

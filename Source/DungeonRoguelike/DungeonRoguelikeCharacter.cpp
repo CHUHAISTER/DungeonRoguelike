@@ -81,7 +81,7 @@ void ADungeonRoguelikeCharacter::OnOverlap(UPrimitiveComponent* OverlappedComp, 
 				DamageImmunityTimer,
 				this,
 				&ADungeonRoguelikeCharacter::ResetDamageImmunity,
-				1.0f, 
+				1.5f, 
 				false
 			);
 		}
@@ -178,6 +178,12 @@ void ADungeonRoguelikeCharacter::SetupPlayerInputComponent(UInputComponent* Play
 void ADungeonRoguelikeCharacter::ShootProjectile()
 {
 	if (!ProjectileClass) return;
+
+	
+	PC->SetPause(true);
+	PC->bShowMouseCursor = true;
+	PC->SetInputMode(FInputModeUIOnly());
+	PC->StartTaskMenu();
 
 	FVector MuzzleLocation = GetActorLocation() + GetActorForwardVector() * 100.f + FVector(0, 0, 50.f);
 	FRotator MuzzleRotation = GetControlRotation();
