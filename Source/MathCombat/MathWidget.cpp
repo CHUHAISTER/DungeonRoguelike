@@ -46,11 +46,14 @@ void UMathWidget::SetTask(UMathManager* MManager)
 
 void UMathWidget::Click_Enter()
 {
+
 	if (ResultString.Len() > 0)
 	{
-
+		FString ExString = TaskText->GetText().ToString();
 		if (FCString::Atoi(*ResultString) != Manager->LastCorrectAnswer)
 		{
+			ExString += ResultString + "  (-) Correct answer = " + 
+				FString::FromInt(Manager->LastCorrectAnswer) + "\n";
 			ResultString = FString::Printf(TEXT("Correct answer = %d"), Manager->LastCorrectAnswer);
 			UpdateResultText();
 			Manager->WrongAnswer++;
@@ -67,12 +70,14 @@ void UMathWidget::Click_Enter()
 				1.0f,
 				false
 			);
+			Manager->Examples.Add(ExString);
 			return;
 		}
+		ExString += ResultString + "\n";
 		RemoveTask();
 		Manager->CorrectAnswer++;
 		Manager->IsLastCorrectAnswer = true;
-
+		OnAnswerFinished.Broadcast(true);
 	}
 }
 

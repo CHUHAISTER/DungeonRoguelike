@@ -9,10 +9,11 @@
 #include <Components/EditableTextBox.h>
 
 
-
 #include "MathWidget.generated.h"
 
 class UMathManager;
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAnswerFinished, bool, bIsCorrect);
 
 /**
  * 
@@ -112,4 +113,6 @@ public:
 
 	void RemoveTask();
 
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnAnswerFinished OnAnswerFinished;
 };

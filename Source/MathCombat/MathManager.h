@@ -23,9 +23,10 @@ public:
 	int32 CorrectAnswer = 0;
 	int32 WrongAnswer = 0;
 	int32 NumberOfTask = 0;
-	TArray<FText> Examples;
+	TArray<FString> Examples;
 	int32 LastCorrectAnswer = 0;
 	bool IsLastCorrectAnswer;
 
 	FText GenerateTask();
+
 };

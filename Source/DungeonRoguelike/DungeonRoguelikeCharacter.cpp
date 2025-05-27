@@ -12,11 +12,14 @@
 #include "InputActionValue.h"
 #include "GameCore/EnemyCharacter.h"
 #include "MathCombat/MathManager.h"
+#include <Kismet/GameplayStatics.h>
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
 //////////////////////////////////////////////////////////////////////////
 // ADungeonRoguelikeCharacter
+
+
 
 ADungeonRoguelikeCharacter::ADungeonRoguelikeCharacter()
 {
@@ -110,8 +113,10 @@ void ADungeonRoguelikeCharacter::TakeDamage(float DamageAmount)
 	}
 	if (CurrentHealth <= 0.f)
 	{
-		// TODO: Handle death
+		
 		UE_LOG(LogTemp, Warning, TEXT("Character is dead!"));
+		PC->SaveExamplesToFile();
+		UGameplayStatics::OpenLevel(this, FName("MainMenuMap"));
 	}
 }
 
@@ -187,22 +192,6 @@ void ADungeonRoguelikeCharacter::ShootProjectile()
 	PC->StartTaskMenu();
 	bCanBeDamaged = true;
 
-	if (PC->MathManager->IsLastCorrectAnswer) 
-	{
-		FVector MuzzleLocation = GetActorLocation() + GetActorForwardVector() * 100.f + FVector(0, 0, 50.f);
-		FRotator MuzzleRotation = GetControlRotation();
-
-		FActorSpawnParameters Params;
-		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-
-		AProjectile* Projectile = GetWorld()->SpawnActor<AProjectile>(ProjectileClass, MuzzleLocation, MuzzleRotation, Params);
-		if (Projectile)
-		{
-			FVector LaunchDir = MuzzleRotation.Vector();
-			Projectile->FireInDirection(LaunchDir);
-		}
-	}
-	
 }
 
 void ADungeonRoguelikeCharacter::Move(const FInputActionValue& Value)

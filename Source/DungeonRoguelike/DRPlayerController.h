@@ -41,4 +41,13 @@ public:
 	UMathWidget* MathWidgetInstance;
 
 	void StartTaskMenu();
+	
+	UFUNCTION()
+	void OnMathWidgetAnswer(bool bIsCorrect);
+	
+	void SaveExamplesToFile();
+
+
+	bool bCanShoot;
+
 };

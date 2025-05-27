@@ -55,6 +55,8 @@ class ADungeonRoguelikeCharacter : public ACharacter
 
 
 public:
+
+
 	ADungeonRoguelikeCharacter();
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
