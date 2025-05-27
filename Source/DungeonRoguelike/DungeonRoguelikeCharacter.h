@@ -55,7 +55,7 @@ class ADungeonRoguelikeCharacter : public ACharacter
 
 
 public:
-
+	int32 CountProjectile = 0;
 
 	ADungeonRoguelikeCharacter();
 	
@@ -74,6 +74,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
 	TSubclassOf<AProjectile> ProjectileClass;
 
+	void SpawnProjectile();
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -89,6 +91,8 @@ protected:
 	FTimerHandle DamageImmunityTimer;
 
 	void ResetDamageImmunity();
+
+	
 protected:
 
 	virtual void NotifyControllerChanged() override;
@@ -96,6 +100,8 @@ protected:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	void ShootProjectile();
+
+	
 
 public:
 	/** Returns CameraBoom subobject **/

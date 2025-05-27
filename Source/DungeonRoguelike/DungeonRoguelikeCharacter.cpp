@@ -184,14 +184,36 @@ void ADungeonRoguelikeCharacter::SetupPlayerInputComponent(UInputComponent* Play
 void ADungeonRoguelikeCharacter::ShootProjectile()
 {
 	if (!ProjectileClass) return;
+	if (CountProjectile > 0) 
+	{
+		SpawnProjectile();
+	}
+	else {
+		bCanBeDamaged = false;
+		PC->SetPause(true);
+		PC->bShowMouseCursor = true;
+		PC->SetInputMode(FInputModeUIOnly());
+		PC->StartTaskMenu();
+		bCanBeDamaged = true;
+	}
+	
+}
 
-	bCanBeDamaged = false;
-	PC->SetPause(true);
-	PC->bShowMouseCursor = true;
-	PC->SetInputMode(FInputModeUIOnly());
-	PC->StartTaskMenu();
-	bCanBeDamaged = true;
+void ADungeonRoguelikeCharacter::SpawnProjectile()
+{
+	CountProjectile--;
+	FVector MuzzleLocation = GetActorLocation() + GetActorForwardVector() * 100.f + FVector(0, 0, 50.f);
+	FRotator MuzzleRotation = GetControlRotation();
 
+	FActorSpawnParameters Params;
+	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+	AProjectile* Projectile = GetWorld()->SpawnActor<AProjectile>(ProjectileClass, MuzzleLocation, MuzzleRotation, Params);
+	if (Projectile)
+	{
+		FVector LaunchDir = MuzzleRotation.Vector();
+		Projectile->FireInDirection(LaunchDir);
+	}
 }
 
 void ADungeonRoguelikeCharacter::Move(const FInputActionValue& Value)

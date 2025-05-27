@@ -74,6 +74,7 @@ void UMathWidget::Click_Enter()
 			return;
 		}
 		ExString += ResultString + "\n";
+		Manager->Examples.Add(ExString);
 		RemoveTask();
 		Manager->CorrectAnswer++;
 		Manager->IsLastCorrectAnswer = true;
