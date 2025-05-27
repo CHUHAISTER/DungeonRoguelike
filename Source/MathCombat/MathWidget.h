@@ -38,6 +38,9 @@ protected:
 	TObjectPtr <UEditableTextBox> Result;
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
+	TObjectPtr<UButton> Button_minus;
+
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
 	TObjectPtr<UButton> Button_0;
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
@@ -88,6 +91,8 @@ protected:
 	UFUNCTION()
 	void OnButton9Clicked() { OnNumberPressed("9"); }
 
+	UFUNCTION()
+	void OnMinusPressed() { OnNumberPressed("-"); }
 
 	UFUNCTION()
 	void OnNumberPressed(FString Number);

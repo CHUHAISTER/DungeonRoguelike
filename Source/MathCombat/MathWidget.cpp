@@ -22,6 +22,7 @@ void UMathWidget::NativeConstruct()
 
 	if (Button_Enter) Button_Enter->OnClicked.AddDynamic(this, &UMathWidget::Click_Enter);
 	if (Button_Delete) Button_Delete->OnClicked.AddDynamic(this, &UMathWidget::OnDeletePressed);
+	if (Button_minus) Button_minus->OnClicked.AddDynamic(this, &UMathWidget::OnMinusPressed);
 
 	Result->OnTextChanged.AddDynamic(this, &UMathWidget::OnResultTextChanged);
 
