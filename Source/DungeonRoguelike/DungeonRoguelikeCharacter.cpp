@@ -11,6 +11,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include "GameCore/EnemyCharacter.h"
+#include "MathCombat/MathManager.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -179,24 +180,29 @@ void ADungeonRoguelikeCharacter::ShootProjectile()
 {
 	if (!ProjectileClass) return;
 
-	
+	bCanBeDamaged = false;
 	PC->SetPause(true);
 	PC->bShowMouseCursor = true;
 	PC->SetInputMode(FInputModeUIOnly());
 	PC->StartTaskMenu();
+	bCanBeDamaged = true;
 
-	FVector MuzzleLocation = GetActorLocation() + GetActorForwardVector() * 100.f + FVector(0, 0, 50.f);
-	FRotator MuzzleRotation = GetControlRotation();
-
-	FActorSpawnParameters Params;
-	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-
-	AProjectile* Projectile = GetWorld()->SpawnActor<AProjectile>(ProjectileClass, MuzzleLocation, MuzzleRotation, Params);
-	if (Projectile)
+	if (PC->MathManager->IsLastCorrectAnswer) 
 	{
-		FVector LaunchDir = MuzzleRotation.Vector();
-		Projectile->FireInDirection(LaunchDir);
+		FVector MuzzleLocation = GetActorLocation() + GetActorForwardVector() * 100.f + FVector(0, 0, 50.f);
+		FRotator MuzzleRotation = GetControlRotation();
+
+		FActorSpawnParameters Params;
+		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+		AProjectile* Projectile = GetWorld()->SpawnActor<AProjectile>(ProjectileClass, MuzzleLocation, MuzzleRotation, Params);
+		if (Projectile)
+		{
+			FVector LaunchDir = MuzzleRotation.Vector();
+			Projectile->FireInDirection(LaunchDir);
+		}
 	}
+	
 }
 
 void ADungeonRoguelikeCharacter::Move(const FInputActionValue& Value)

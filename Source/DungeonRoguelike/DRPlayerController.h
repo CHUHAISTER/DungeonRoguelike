@@ -37,5 +37,8 @@ public:
 	UPROPERTY()
 	UMathManager* MathManager;
 
+	UPROPERTY()
+	UMathWidget* MathWidgetInstance;
+
 	void StartTaskMenu();
 };

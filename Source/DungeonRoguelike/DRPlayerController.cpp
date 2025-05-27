@@ -21,8 +21,10 @@ void ADRPlayerController::BeginPlay()
 
 void ADRPlayerController::StartTaskMenu()
 {
-    UMathWidget* W = CreateWidget<UMathWidget>(this, MathWidgetClass);
-    W->SetTask(MathManager->GenerateTask());
-    W->AddToViewport();
+    MathWidgetInstance = CreateWidget<UMathWidget>(this, MathWidgetClass);
+    MathWidgetInstance->SetTask(MathManager);   
+    MathWidgetInstance->AddToViewport();
+
+
 }
 

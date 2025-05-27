@@ -2,6 +2,7 @@
 
 
 #include "MathWidget.h"
+#include "MathManager.h"
 
 
 void UMathWidget::NativeConstruct()
@@ -22,16 +23,24 @@ void UMathWidget::NativeConstruct()
 	if (Button_Enter) Button_Enter->OnClicked.AddDynamic(this, &UMathWidget::Click_Enter);
 	if (Button_Delete) Button_Delete->OnClicked.AddDynamic(this, &UMathWidget::OnDeletePressed);
 
+	Result->OnTextChanged.AddDynamic(this, &UMathWidget::OnResultTextChanged);
+
 }
 
 
-
-
-void UMathWidget::SetTask(FText Task)
+void UMathWidget::OnResultTextChanged(const FText& Text)
 {
+	ResultString = Text.ToString();
+}
+
+void UMathWidget::SetTask(UMathManager* MManager)
+{
+	Manager = MManager;
+	Manager->NumberOfTask++;
+
 	if (TaskText)
 	{
-		TaskText->SetText(Task);
+		TaskText->SetText(Manager->GenerateTask());
 	}
 }
 
@@ -39,16 +48,44 @@ void UMathWidget::Click_Enter()
 {
 	if (ResultString.Len() > 0)
 	{
-		RemoveFromParent();
 
-		if (APlayerController* PC = GetOwningPlayer())
+		if (FCString::Atoi(*ResultString) != Manager->LastCorrectAnswer)
 		{
-			PC->SetInputMode(FInputModeGameOnly());
-			PC->bShowMouseCursor = false;
-			PC->SetPause(false);
+			ResultString = FString::Printf(TEXT("Correct answer = %d"), Manager->LastCorrectAnswer);
+			UpdateResultText();
+			Manager->WrongAnswer++;
+			Manager->IsLastCorrectAnswer = false;
+			if (APlayerController* PC = GetOwningPlayer())
+			{
+				PC->SetPause(false);
+			}
+			FTimerHandle TimerHandle;
+			GetWorld()->GetTimerManager().SetTimer(
+				TimerHandle,
+				this,
+				&UMathWidget::RemoveTask,
+				1.0f,
+				false
+			);
+			return;
 		}
+		RemoveTask();
+		Manager->CorrectAnswer++;
+		Manager->IsLastCorrectAnswer = true;
+
 	}
-};
+}
+
+void UMathWidget::RemoveTask()
+{
+	RemoveFromParent();
+	if (APlayerController* PC = GetOwningPlayer())
+	{
+		PC->SetInputMode(FInputModeGameOnly());
+		PC->bShowMouseCursor = false;
+		PC->SetPause(false);
+	}
+}
 
 void UMathWidget::OnNumberPressed(FString Number)
 {

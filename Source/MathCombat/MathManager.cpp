@@ -11,9 +11,9 @@ FText UMathManager::GenerateTask()
     
     FString TaskString = FString::Printf(TEXT("%d + %d = ?"), First, Second);
     LastCorrectAnswer = First + Second;
-    FText Ex = FText::FromString(TaskString);
-    Examples.Add(Ex);
-    return Ex;
+    UE_LOG(LogTemp, Warning, TEXT("result(manager) = %d"), LastCorrectAnswer);
+
+    return FText::FromString(TaskString);
 }
 
 

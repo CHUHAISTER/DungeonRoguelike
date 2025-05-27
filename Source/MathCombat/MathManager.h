@@ -25,6 +25,7 @@ public:
 	int32 NumberOfTask = 0;
 	TArray<FText> Examples;
 	int32 LastCorrectAnswer = 0;
+	bool IsLastCorrectAnswer;
 
 	FText GenerateTask();
 };

@@ -12,6 +12,7 @@
 
 #include "MathWidget.generated.h"
 
+class UMathManager;
 
 /**
  * 
@@ -96,11 +97,19 @@ protected:
 	void UpdateResultText();
 
 	FString ResultString;
+
 public:
 	UFUNCTION(BlueprintCallable)
-	void SetTask(FText Task);
+	void OnResultTextChanged(const FText& Text);
+
+	UFUNCTION(BlueprintCallable)
+	void SetTask(UMathManager* Manager);
+
+	UMathManager* Manager;
 
 	UFUNCTION()
 	void Click_Enter();
+
+	void RemoveTask();
 
 };
