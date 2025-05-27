@@ -48,6 +48,7 @@ public:
 	void SaveExamplesToFile();
 
 
+
 	bool bCanShoot;
 
 };

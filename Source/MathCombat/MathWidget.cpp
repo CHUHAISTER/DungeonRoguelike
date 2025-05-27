@@ -58,6 +58,7 @@ void UMathWidget::Click_Enter()
 			UpdateResultText();
 			Manager->WrongAnswer++;
 			Manager->IsLastCorrectAnswer = false;
+			Manager->SkillLevel--;
 			if (APlayerController* PC = GetOwningPlayer())
 			{
 				PC->SetPause(false);
@@ -71,10 +72,15 @@ void UMathWidget::Click_Enter()
 				false
 			);
 			Manager->Examples.Add(ExString);
+			Manager->AddStreakElement(0);
+			OnAnswerFinished.Broadcast(false);
 			return;
 		}
 		ExString += ResultString + "\n";
 		Manager->Examples.Add(ExString);
+		Manager->AddStreakElement(1);
+		Manager->SkillLevel++;
+
 		RemoveTask();
 		Manager->CorrectAnswer++;
 		Manager->IsLastCorrectAnswer = true;

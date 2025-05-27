@@ -26,7 +26,13 @@ public:
 	TArray<FString> Examples;
 	int32 LastCorrectAnswer = 0;
 	bool IsLastCorrectAnswer;
-
+	int32 SkillLevel = 50;
+	TArray<int32> MathStreak = {-1, -1, -1};
+	const int32 MaxStreakElement = 3;
 	FText GenerateTask();
 
+
+	void AddStreakElement(int32 NewElement);
+
+	bool AreAllStreakElementsEqual();
 };

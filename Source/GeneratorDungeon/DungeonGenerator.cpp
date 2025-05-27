@@ -414,35 +414,42 @@ void ADungeonGenerator::SpawnEnemy()
 
     for (TUniquePtr<UDungeonRoom>& room : Rooms)
     {
-        
-        
         if (room->RoomType == ERoomType::Enemy)
         {
-            float CenterX = (room->X + room->Width / 2.0f) * TileSize;
-            float CenterY = (room->Y + room->Height / 2.0f) * TileSize;
-            FVector SpawnLocation = FVector(CenterX, CenterY, 50);
-            AEnemyCharacter* Enemy = World->SpawnActor<AEnemyCharacter>(
-                EnemyClass,
-                SpawnLocation,
-                FRotator::ZeroRotator
-            );
+            int32 countenemy = room->Area / 50;
+            UE_LOG(LogTemp, Warning, TEXT("countenemy = %d   --- area = %d"), countenemy, room->Area);
 
-            if (Enemy)
-            {
-                FVector PatrolMin = FVector(
-                    room->X * TileSize,
-                    room->Y * TileSize,
-                    SpawnLocation.Z
-                );
-                FVector PatrolMax = FVector(
-                    (room->X + room->Width) * TileSize,
-                    (room->Y + room->Height) * TileSize,
-                    SpawnLocation.Z
+            if (countenemy < 1) countenemy = 1;
+            for (int i = 0; i < countenemy; i++) {
+                int32 RandX = FMath::RandRange(room->X, room->X + room->Width - 1);
+                int32 RandY = FMath::RandRange(room->Y, room->Y + room->Height - 1);
+
+                float SpawnX = RandX * TileSize;
+                float SpawnY = RandY * TileSize;
+                FVector SpawnLocation = FVector(SpawnX, SpawnY, 50);
+                AEnemyCharacter* Enemy = World->SpawnActor<AEnemyCharacter>(
+                    EnemyClass,
+                    SpawnLocation,
+                    FRotator::ZeroRotator
                 );
 
-                Enemy->SetPatrolArea(PatrolMin, PatrolMax);
+                if (Enemy)
+                {
+                    FVector PatrolMin = FVector(
+                        room->X * TileSize,
+                        room->Y * TileSize,
+                        SpawnLocation.Z
+                    );
+                    FVector PatrolMax = FVector(
+                        (room->X + room->Width) * TileSize,
+                        (room->Y + room->Height) * TileSize,
+                        SpawnLocation.Z
+                    );
 
-                Enemy->ChoosePatrolTarget();
+                    Enemy->SetPatrolArea(PatrolMin, PatrolMax);
+
+                    Enemy->ChoosePatrolTarget();
+                }
             }
         }
         

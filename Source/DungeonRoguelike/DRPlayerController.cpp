@@ -32,14 +32,35 @@ void ADRPlayerController::StartTaskMenu()
 }
 void  ADRPlayerController::OnMathWidgetAnswer(bool bIsCorrect)
 {
+    ADungeonRoguelikeCharacter* MyChar = Cast<ADungeonRoguelikeCharacter>(GetPawn());
+
     if (bIsCorrect)
     {
-        
-        ADungeonRoguelikeCharacter* MyChar = Cast<ADungeonRoguelikeCharacter>(GetPawn());
         MyChar->CountProjectile = 2;
         MyChar->SpawnProjectile();
-        
     }
+    else 
+    {
+        MyChar->TakeDamage(1);
+    }
+    if (MathManager->AreAllStreakElementsEqual())
+    {
+        if (MathManager->IsLastCorrectAnswer)
+        {
+            MyChar->TakeDamage(-5);
+            MyChar->CountProjectile++;
+            MathManager->SkillLevel += 4;
+
+        }
+        else
+        {
+            MyChar->TakeDamage(3);
+            MathManager->SkillLevel -= 4;
+
+        }
+        MathManager->MathStreak = {-1, -1, -1};
+    }
+    
 }
 void ADRPlayerController::SaveExamplesToFile()
 {
@@ -49,6 +70,10 @@ void ADRPlayerController::SaveExamplesToFile()
     TArray<FString> Lines;
     Lines.Add(Header);
     Lines.Append(MathManager->Examples);
+    Lines.Add("Number of correct answers = " + FString::FromInt(MathManager->CorrectAnswer) + "\n");
+    Lines.Add("Number of wrong answers = " + FString::FromInt(MathManager->WrongAnswer) + "\n");
+    Lines.Add("Number of task = " + FString::FromInt(MathManager->NumberOfTask) + "\n");
+    Lines.Add("Àinal grade = " + FString::FromInt(MathManager->SkillLevel) + "\n");
 
     FString SaveDir = FPaths::ProjectSavedDir();
     FString FilePath = SaveDir / TEXT("ExamplesLog.txt");
