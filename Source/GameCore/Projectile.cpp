@@ -30,7 +30,14 @@ AProjectile::AProjectile()
     ProjectileMovement->ProjectileGravityScale = 0.f;
 
 
-
+    if (CollisionComponent->OnComponentBeginOverlap.IsBound())
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Overlap delegate is BOUND"));
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("Overlap delegate is NOT bound!"));
+    }
 }
 
 // Called when the game starts or when spawned

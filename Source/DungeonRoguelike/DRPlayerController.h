@@ -24,9 +24,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
 	TSubclassOf<UHealthBar> UHealthBarClass;
-
-	//FAKE
-	UHealthBar UHealthBar_Class;
 private:
 	UHealthBar* HealthBarWidget;
 
@@ -36,9 +33,6 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
 	TSubclassOf<UMathWidget> MathWidgetClass;
-
-	//FAKE
-	UMathWidget MathWidget_Class;
 
 	UPROPERTY()
 	UMathManager* MathManager;
