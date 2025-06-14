@@ -113,6 +113,10 @@ public:
 
 	void DrawDungeon(TArray<TArray<TCHAR>>&);
 
+	//FAKE
+	AEnemyCharacter Enemy_Class;
+	std::vector<UDungeonRoom> rooms;
+
 	
 private:
 	TUniquePtr<Node> root;

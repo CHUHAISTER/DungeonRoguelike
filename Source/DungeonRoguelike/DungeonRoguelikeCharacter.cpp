@@ -77,7 +77,7 @@ void ADungeonRoguelikeCharacter::OnOverlap(UPrimitiveComponent* OverlappedComp, 
 		Enemy->KnockbackFromPlayer(GetActorLocation(), 400.0f);
 		if (bCanBeDamaged)
 		{
-			this->TakeDamage(5.0f);
+			this->TakeDamage(50.0f);
 			bCanBeDamaged = false;
 
 			// Запускаємо таймер на 1 секунду (або скільки треба)

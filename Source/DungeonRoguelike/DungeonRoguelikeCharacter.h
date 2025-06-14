@@ -76,6 +76,10 @@ public:
 
 	void SpawnProjectile();
 
+	//FAKE
+	AProjectile Projectile_Class;
+
+
 protected:
 	virtual void BeginPlay() override;
 
