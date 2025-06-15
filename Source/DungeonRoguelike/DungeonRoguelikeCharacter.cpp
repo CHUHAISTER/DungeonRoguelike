@@ -116,7 +116,7 @@ void ADungeonRoguelikeCharacter::TakeDamage(float DamageAmount)
 		
 		UE_LOG(LogTemp, Warning, TEXT("Character is dead!"));
 		PC->SaveExamplesToFile();
-		UGameplayStatics::OpenLevel(this, FName("MainMenuMap"));
+		UGameplayStatics::OpenLevel(this, FName("LooseMenuMap"));
 	}
 }
 

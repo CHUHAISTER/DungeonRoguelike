@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "MathWidget.h"
@@ -53,9 +53,9 @@ void UMathWidget::Click_Enter()
 		FString ExString = TaskText->GetText().ToString();
 		if (FCString::Atoi(*ResultString) != Manager->LastCorrectAnswer)
 		{
-			ExString += ResultString + "  (-) Correct answer = " + 
+			ExString += ResultString + "  (-) Правильна відповідь = " + 
 				FString::FromInt(Manager->LastCorrectAnswer) + "\n";
-			ResultString = FString::Printf(TEXT("Correct answer = %d"), Manager->LastCorrectAnswer);
+			ResultString = FString::Printf(TEXT("Правильна  відповідь = %d"), Manager->LastCorrectAnswer);
 			UpdateResultText();
 			Manager->WrongAnswer++;
 			Manager->IsLastCorrectAnswer = false;
