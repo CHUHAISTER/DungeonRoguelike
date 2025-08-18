@@ -53,9 +53,9 @@ void UMathWidget::Click_Enter()
 		FString ExString = TaskText->GetText().ToString();
 		if (FCString::Atoi(*ResultString) != Manager->LastCorrectAnswer)
 		{
-			ExString += ResultString + "  (-) Правильна відповідь = " + 
+			ExString += ResultString + "  (-) Correct answer = " + 
 				FString::FromInt(Manager->LastCorrectAnswer) + "\n";
-			ResultString = FString::Printf(TEXT("Правильна  відповідь = %d"), Manager->LastCorrectAnswer);
+			ResultString = FString::Printf(TEXT("Correct answer = %d"), Manager->LastCorrectAnswer);
 			UpdateResultText();
 			Manager->WrongAnswer++;
 			Manager->IsLastCorrectAnswer = false;
